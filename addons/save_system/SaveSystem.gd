@@ -17,6 +17,9 @@ extends Node
 #
 # You can use this plugin in your Godot project as you wish. 
 # Crediting me is appreciated, but not a must!
+#
+# If you rely on save data in an AutoLoad's _ready function, you may need to wait for the
+# "loaded" signal of this AutoLoad. 
 
 
 # The file path of your save data. You can freely modify this.
@@ -24,6 +27,10 @@ const file_name = "user://save_data.sav"
 
 var current_state_dictionary := {}
 var base_resource_property_names := []
+
+
+signal loaded
+signal saved
 
 
 func _ready():
@@ -62,6 +69,9 @@ func delete_all():
 
 # Deletes a specific key's information.
 func delete(key_path : String):
+	if(!has(key_path)):
+		return
+	
 	if(!_is_hierarchical(key_path)): # If the key has no hierarchy, it can be simply erased.
 		current_state_dictionary.erase(key_path)
 		return
@@ -118,12 +128,17 @@ func set_var(key_path : String, value):
 func save():
 	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_name, FileAccess.WRITE, OS.get_unique_id())
 	f.store_var(current_state_dictionary, true)
+	emit_signal("saved")
 
 
 # Returns a variable.
-func get_var(key_path : String):
+func get_var(key_path : String, default = null):
 	key_path = _sanitize_key_path(key_path)
-	return _get_variable_at_path(key_path)
+	var var_at_path = _get_variable_at_path(key_path)
+	if(var_at_path != null):
+		return var_at_path
+	else:
+		return default
 
 
 # --------------------------------- INTERNAL FUNCTIONS ---------------------------------
@@ -139,6 +154,7 @@ func _load():
 	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_name, FileAccess.READ, OS.get_unique_id())
 	if(f):
 		current_state_dictionary = f.get_var()
+	emit_signal("loaded")
 
 
 # Sanitizes the input key path. It must be performed on every input that goes into 
