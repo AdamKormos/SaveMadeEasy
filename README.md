@@ -25,8 +25,10 @@ You can also notice functions intended for internal use begin their names with a
 
 # Demonstration
 _Here's a class of our Resource created for testing this system:_
+
 ![Screenshot_43](https://github.com/AdamKormos/SaveMadeEasy/assets/49873113/d9547f06-9253-4005-9e3b-989ca69e92f3)
 
 _You may use the set_var and get_var variables of the SaveSystem Singleton for the core functionality: (This code sample can be found in SaveSystem.gd)_
+
 ![Screenshot_41](https://github.com/AdamKormos/SaveMadeEasy/assets/49873113/f860e709-c108-4ebc-a0f8-c18e3e7925af)
 **Nesting is expressed by the colon symbol (:).**
