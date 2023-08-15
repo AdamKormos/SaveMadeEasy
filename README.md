@@ -33,4 +33,4 @@ _You may use the set_var and get_var variables of the SaveSystem Singleton for t
 
 ![Screenshot_41](https://github.com/AdamKormos/SaveMadeEasy/assets/49873113/f860e709-c108-4ebc-a0f8-c18e3e7925af)
 
-**Nesting is expressed by the colon symbol (:).**
+**Nesting is expressed by the colon symbol (:). You may also access dictionary values with this notation.**
