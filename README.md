@@ -32,4 +32,5 @@ _Here's a class of our Resource created for testing this system:_
 _You may use the set_var and get_var variables of the SaveSystem Singleton for the core functionality: (This code sample can be found in SaveSystem.gd)_
 
 ![Screenshot_41](https://github.com/AdamKormos/SaveMadeEasy/assets/49873113/f860e709-c108-4ebc-a0f8-c18e3e7925af)
+
 **Nesting is expressed by the colon symbol (:).**
