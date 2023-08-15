@@ -24,11 +24,9 @@ While you can find complete documentation in the plugin code, let me highlight t
 You can also notice functions intended for internal use begin their names with an underscore in the code.
 
 # Demonstration
+_Here's a class of our Resource created for testing this system:_
 ![Screenshot_43](https://github.com/AdamKormos/SaveMadeEasy/assets/49873113/d9547f06-9253-4005-9e3b-989ca69e92f3)
 
-_Here's a class of our Resource created for testing this system._
-
+_You may use the set_var and get_var variables of the SaveSystem Singleton for the core functionality: (This code sample can be found in SaveSystem.gd)_
 ![Screenshot_41](https://github.com/AdamKormos/SaveMadeEasy/assets/49873113/f860e709-c108-4ebc-a0f8-c18e3e7925af)
-
-_You may use the set_var and get_var variables of the SaveSystem Singleton for the core functionality. (This code sample can be found in SaveSystem.gd)_
 **Nesting is expressed by the colon symbol (:).**
