@@ -233,3 +233,15 @@ func _resource_to_dict(resource : Resource) -> Dictionary:
 			continue
 		dict[property.name] = resource.get(property.name)
 	return dict
+
+
+# Converts a Dictionary's information into a Resource. We need a resource as the
+# 2nd parameter so that the instance has the given fields our Dictionary assigns.
+# The simplest approach is using a new instance of the Resource type in question
+# (e.g TestResource.new())
+func _dict_to_resource(dict : Dictionary, target_resource : Resource) -> Resource:
+	for i in range(dict.size()):
+		var key = dict.keys()[i]
+		var value = dict.values()[i]
+		target_resource.set(key, value)
+	return target_resource
