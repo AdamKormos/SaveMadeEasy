@@ -21,7 +21,6 @@ extends Node
 # If you rely on save data in an AutoLoad's _ready function, you may need to wait for the
 # "loaded" signal of this AutoLoad. 
 
-
 signal loaded
 signal saved
 
@@ -40,21 +39,6 @@ func _ready():
 		base_resource_property_names.append(property.name)
 	
 	_load() # Load save data.
-	
-	# Test stuff for demonstration of the plugin:
-#	set_var("Bob", TestResource.new())
-#	set_var("Bob:a", TestResource.new())
-#	set_var("Bob:a:b", 3)
-#	set_var("Bob:a:c:d", {"abcf" : 5})
-#	print(has("Bob"))
-#	set_var("Bob:a:b", null)
-#	set_var("Bob:a:c", TestResource.new())
-#	set_var("Bob:a:c:c", 10)
-#	delete("Bob:a:c:d")
-#	print(get_var("Bob"))
-#	print(_sanitize_key_path("Bob:a:c:d"))
-#	print(_sanitize_key_path(":::::Bob::::a:c:::d::"))
-#	print(has("Z"))
 
 
 func _exit_tree():
