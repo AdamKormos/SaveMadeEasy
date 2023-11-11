@@ -23,7 +23,7 @@ extends Node
 
 
 # The file path of your save data. You can freely modify this.
-const file_name = "user://save_data.sav"
+const file_path = "user://save_data.sav"
 
 var current_state_dictionary := {}
 var base_resource_property_names := []
@@ -126,7 +126,7 @@ func set_var(key_path : String, value):
 
 # Saves the current state.
 func save():
-	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_name, FileAccess.WRITE, OS.get_unique_id())
+	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, OS.get_unique_id())
 	f.store_var(current_state_dictionary, true)
 	emit_signal("saved")
 
@@ -151,7 +151,7 @@ func _is_hierarchical(key : String) -> bool:
 
 # Loads the root dictionary stored in the save file.
 func _load():
-	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_name, FileAccess.READ, OS.get_unique_id())
+	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.READ, OS.get_unique_id())
 	if f:
 		current_state_dictionary = f.get_var()
 	emit_signal("loaded")
