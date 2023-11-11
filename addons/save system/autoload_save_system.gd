@@ -6,7 +6,7 @@ const AUTOLOAD_NAME = "SaveSystem"
 
 
 func _enter_tree():
-	add_autoload_singleton(AUTOLOAD_NAME, "res://addons/save_system/SaveSystem.gd")
+	add_autoload_singleton(AUTOLOAD_NAME, "res://addons/save system/save_system.gd")
 
 
 func _exit_tree():
