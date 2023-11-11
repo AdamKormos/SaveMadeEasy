@@ -69,10 +69,10 @@ func delete_all():
 
 # Deletes a specific key's information.
 func delete(key_path : String):
-	if !has(key_path):
+	if not has(key_path):
 		return
 	
-	if !_is_hierarchical(key_path): # If the key has no hierarchy, it can be simply erased.
+	if not _is_hierarchical(key_path): # If the key has no hierarchy, it can be simply erased.
 		current_state_dictionary.erase(key_path)
 		return
 	
@@ -97,7 +97,7 @@ func delete(key_path : String):
 func has(key_path : String) -> bool:
 	if _is_hierarchical(key_path):
 		var key_parent = _get_variable_at_path(_get_variable_name_body(key_path))
-		return key_parent != null && key_parent.has(_get_variable_name_head(key_path))
+		return not key_parent == null and key_parent.has(_get_variable_name_head(key_path))
 	else:
 		return current_state_dictionary.has(key_path)
 
@@ -109,7 +109,7 @@ func set_var(key_path : String, value):
 		if value is Resource:
 			value = _resource_to_dict(value)
 		
-		if !has(key_path): # Read :HasIncludesNull
+		if not has(key_path): # Read :HasIncludesNull
 			return
 		# Hierarchical variable assignment can be achieved by tracking the key's direct parent
 		# dictionary, and then getting the head of it so that we can overwrite the value. 
@@ -135,7 +135,7 @@ func save():
 func get_var(key_path : String, default = null):
 	key_path = _sanitize_key_path(key_path)
 	var var_at_path = _get_variable_at_path(key_path)
-	if var_at_path != null:
+	if not var_at_path == null:
 		return var_at_path
 	else:
 		return default
@@ -146,7 +146,7 @@ func get_var(key_path : String, default = null):
 
 # A hierarchical key has a colon separating its body and head. Read :KeyParts
 func _is_hierarchical(key : String) -> bool:
-	return key.find(":") != -1
+	return not key.find(":") == -1
 
 
 # Loads the root dictionary stored in the save file.
@@ -218,7 +218,7 @@ func _get_parent_dictionary(key_path : String, carried_dict : Dictionary = curre
 func _get_variable_at_path(key_path : String, carried_dict : Dictionary = current_state_dictionary):
 	key_path = _sanitize_key_path(key_path)
 	var parent_dict = _get_parent_dictionary(key_path)
-	if parent_dict != null && parent_dict.has(_get_variable_name_head(key_path)):
+	if not parent_dict == null and parent_dict.has(_get_variable_name_head(key_path)):
 		return parent_dict[_get_variable_name_head(key_path)]
 	else:
 		return null
@@ -229,7 +229,7 @@ func _get_variable_at_path(key_path : String, carried_dict : Dictionary = curren
 func _resource_to_dict(resource : Resource) -> Dictionary:
 	var dict := {}
 	for property in resource.get_property_list():
-		if base_resource_property_names.has(property.name) || property.name.ends_with(".gd"): 
+		if base_resource_property_names.has(property.name) or property.name.ends_with(".gd"): 
 			continue
 		dict[property.name] = resource.get(property.name)
 	return dict
