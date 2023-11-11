@@ -22,15 +22,14 @@ extends Node
 # "loaded" signal of this AutoLoad. 
 
 
+signal loaded
+signal saved
+
 # The file path of your save data. You can freely modify this.
 const file_path = "user://save_data.sav"
 
 var current_state_dictionary := {}
 var base_resource_property_names := []
-
-
-signal loaded
-signal saved
 
 
 func _ready():
