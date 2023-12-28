@@ -27,7 +27,8 @@ extends Node
 
 
 # The file path of your save data. You can freely modify this.
-const file_path = "user://save_data.sav"
+const file_path : String = "user://save_data.sav"
+const use_encryption : bool = true
 
 var current_state_dictionary := {}
 var base_resource_property_names := []
@@ -45,32 +46,6 @@ func _ready():
 		base_resource_property_names.append(property.name)
 	
 	_load() # Load save data.
-	
-# Test stuff for demonstration of the plugin --------------------------
-#	
-#	print(get_var("Bob"))
-#	set_var("Bob", TestResource.new())
-#	set_var("Bob:e", Vector2(4, 9))
-#	
-	# Saving arrays with resources and nested resources:
-#	var my_arr := [TestSubresource.new(), TestSubresource.new()]
-#	my_arr[0].c[0].b = 66
-#	set_var("Bob:f", my_arr)
-#	print(get_var("Bob:f")[0].c[0].b)
-#	save()
-#	
-	# Saving primitive types, dictionaries and non-resource arrays:
-#	set_var("Bob:a:b", 3)
-#	set_var("Bob:a:c:d", {"abcf" : 5})
-#	print(has("Bob"))
-#	set_var("Bob:a:b", null)
-#	set_var("Bob:a:c", TestResource.new())
-#	set_var("Bob:a:c:c", 10)
-#	delete("Bob:a:c:d")
-#	print(get_var("Bob"))
-#	print(_sanitize_key_path("Bob:a:c:d"))
-#	print(_sanitize_key_path(":::::Bob::::a:c:::d::"))
-#	print(has("Z"))
 
 
 func _exit_tree():
@@ -144,8 +119,12 @@ func set_var(key_path : String, value):
 
 # Saves the current state.
 func save():
-	var file : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, OS.get_unique_id())
-	file.store_var(current_state_dictionary, true)
+	var file : FileAccess
+	if use_encryption:
+		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, OS.get_unique_id())
+	else:
+		file = FileAccess.open(file_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(current_state_dictionary))
 	emit_signal("saved")
 
 
@@ -183,9 +162,14 @@ func _is_hierarchical(key : String) -> bool:
 
 # Loads the root dictionary stored in the save file.
 func _load():
-	var file : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.READ, OS.get_unique_id())
+	var file : FileAccess
+	if use_encryption:
+		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.READ, OS.get_unique_id())
+	else:
+		file = FileAccess.open(file_path, FileAccess.READ)
+	
 	if file:
-		current_state_dictionary = file.get_var()
+		current_state_dictionary = JSON.parse_string(file.get_as_text())
 	emit_signal("loaded")
 
 
