@@ -15,20 +15,26 @@ extends Node
 #   get_var("res:a")
 # Simple, right?
 #
+# I'd like to thank Loppansson for the awesome setup of the test environment and the naming
+# conventions cleanup. :) My gratitude goes to all of you using the plugin and helping me 
+# make it better by reporting arising issues! 
+#
 # You can use this plugin in your Godot project as you wish. 
 # Crediting me is appreciated, but not a must!
 #
 # If you rely on save data in an AutoLoad's _ready function, you may need to wait for the
 # "loaded" signal of this AutoLoad. 
 
-signal loaded
-signal saved
 
 # The file path of your save data. You can freely modify this.
 const file_path = "user://save_data.sav"
 
 var current_state_dictionary := {}
 var base_resource_property_names := []
+
+
+signal loaded
+signal saved
 
 
 func _ready():
@@ -39,6 +45,32 @@ func _ready():
 		base_resource_property_names.append(property.name)
 	
 	_load() # Load save data.
+	
+# Test stuff for demonstration of the plugin --------------------------
+#	
+#	print(get_var("Bob"))
+#	set_var("Bob", TestResource.new())
+#	set_var("Bob:e", Vector2(4, 9))
+#	
+	# Saving arrays with resources and nested resources:
+#	var my_arr := [TestSubresource.new(), TestSubresource.new()]
+#	my_arr[0].c[0].b = 66
+#	set_var("Bob:f", my_arr)
+#	print(get_var("Bob:f")[0].c[0].b)
+#	save()
+#	
+	# Saving primitive types, dictionaries and non-resource arrays:
+#	set_var("Bob:a:b", 3)
+#	set_var("Bob:a:c:d", {"abcf" : 5})
+#	print(has("Bob"))
+#	set_var("Bob:a:b", null)
+#	set_var("Bob:a:c", TestResource.new())
+#	set_var("Bob:a:c:c", 10)
+#	delete("Bob:a:c:d")
+#	print(get_var("Bob"))
+#	print(_sanitize_key_path("Bob:a:c:d"))
+#	print(_sanitize_key_path(":::::Bob::::a:c:::d::"))
+#	print(has("Z"))
 
 
 func _exit_tree():
@@ -80,7 +112,7 @@ func delete(key_path : String):
 func has(key_path : String) -> bool:
 	if _is_hierarchical(key_path):
 		var key_parent = _get_variable_at_path(_get_variable_name_body(key_path))
-		return not key_parent == null and key_parent.has(_get_variable_name_head(key_path))
+		return key_parent != null and key_parent.has(_get_variable_name_head(key_path))
 	else:
 		return current_state_dictionary.has(key_path)
 
@@ -91,9 +123,12 @@ func set_var(key_path : String, value):
 	if _is_hierarchical(key_path):
 		if value is Resource:
 			value = _resource_to_dict(value)
+		elif value is Array:
+			value = _parse_array(value)
 		
 		if not has(key_path): # Read :HasIncludesNull
 			return
+		
 		# Hierarchical variable assignment can be achieved by tracking the key's direct parent
 		# dictionary, and then getting the head of it so that we can overwrite the value. 
 		var result = _get_parent_dictionary(key_path)
@@ -109,8 +144,8 @@ func set_var(key_path : String, value):
 
 # Saves the current state.
 func save():
-	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, OS.get_unique_id())
-	f.store_var(current_state_dictionary, true)
+	var file : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, OS.get_unique_id())
+	file.store_var(current_state_dictionary, true)
 	emit_signal("saved")
 
 
@@ -118,7 +153,7 @@ func save():
 func get_var(key_path : String, default = null):
 	key_path = _sanitize_key_path(key_path)
 	var var_at_path = _get_variable_at_path(key_path)
-	if not var_at_path == null:
+	if var_at_path != null:
 		return var_at_path
 	else:
 		return default
@@ -127,16 +162,30 @@ func get_var(key_path : String, default = null):
 # --------------------------------- INTERNAL FUNCTIONS ---------------------------------
 
 
+# Performs a recursive look-up on its elements to "unpack" potential resources in arrays,
+# and return an array of data that only holds primitives and dictionaries.
+func _parse_array(array : Array) -> Array:
+	var result := []
+	for element in array:
+		if element is Resource:
+			result.append(_resource_to_dict(element))
+		elif element is Array:
+			result.append(_parse_array(element))
+		else:
+			result.append(element)
+	return result
+
+
 # A hierarchical key has a colon separating its body and head. Read :KeyParts
 func _is_hierarchical(key : String) -> bool:
-	return not key.find(":") == -1
+	return key.find(":") != -1
 
 
 # Loads the root dictionary stored in the save file.
 func _load():
-	var f : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.READ, OS.get_unique_id())
-	if f:
-		current_state_dictionary = f.get_var()
+	var file : FileAccess = FileAccess.open_encrypted_with_pass(file_path, FileAccess.READ, OS.get_unique_id())
+	if file:
+		current_state_dictionary = file.get_var()
 	emit_signal("loaded")
 
 
@@ -150,7 +199,7 @@ func _sanitize_key_path(key_path : String) -> String:
 	while i < key_path.length():
 		sanitized_string += key_path[i]
 		if key_path[i] == ":": # Skip over multiple colons placed after each other.
-			while key_path[i + 1] == ":": # No need to look for going OOB because the edges of the key are uncolonised (lol)
+			while(key_path[i + 1] == ":"): # No need to look for going OOB because the edges of the key are uncolonised (lol)
 				i += 1
 		i += 1
 	return sanitized_string
@@ -187,13 +236,15 @@ func _get_variable_name_head(key_path : String) -> String:
 # the base is used.
 func _get_parent_dictionary(key_path : String, carried_dict : Dictionary = current_state_dictionary):
 	key_path = _sanitize_key_path(key_path)
-	if key_path.count(":") == 0:
+	var depth_count = key_path.count(":")
+	if depth_count == 0:
 		return carried_dict
-	elif key_path.count(":") == 1:
+	elif depth_count == 1:
 		return carried_dict[key_path.split(":")[0]]
 	
-	var first_name = key_path.substr(0, key_path.find(":"))
-	key_path = key_path.trim_prefix(first_name + key_path[key_path.find(":")])
+	var first_splitter_index = key_path.find(":")
+	var first_name = key_path.substr(0, first_splitter_index)
+	key_path = key_path.trim_prefix(first_name + key_path[first_splitter_index])
 	return _get_parent_dictionary(key_path, carried_dict[first_name])
 
 
@@ -201,7 +252,7 @@ func _get_parent_dictionary(key_path : String, carried_dict : Dictionary = curre
 func _get_variable_at_path(key_path : String, carried_dict : Dictionary = current_state_dictionary):
 	key_path = _sanitize_key_path(key_path)
 	var parent_dict = _get_parent_dictionary(key_path)
-	if not parent_dict == null and parent_dict.has(_get_variable_name_head(key_path)):
+	if parent_dict != null and parent_dict.has(_get_variable_name_head(key_path)):
 		return parent_dict[_get_variable_name_head(key_path)]
 	else:
 		return null
@@ -214,7 +265,13 @@ func _resource_to_dict(resource : Resource) -> Dictionary:
 	for property in resource.get_property_list():
 		if base_resource_property_names.has(property.name) or property.name.ends_with(".gd"): 
 			continue
-		dict[property.name] = resource.get(property.name)
+		
+		var property_value = resource.get(property.name)
+		# Arrays have to be interpreted recursively, see _parse_array function description.
+		if property_value is Array:
+			dict[property.name] = _parse_array(property_value)
+		else:
+			dict[property.name] = property_value
 	return dict
 
 

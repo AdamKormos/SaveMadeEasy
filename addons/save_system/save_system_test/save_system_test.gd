@@ -26,10 +26,11 @@ func _ready():
 		SaveSystem.set_var("test_resource:resource:name", null)
 		SaveSystem.set_var("test_resource:resource:resource", SaveSystemTestResource.new())
 		SaveSystem.set_var("test_resource:resource:resource:id", 2)
+		SaveSystem.get_var("test_resource:resource_arr")[0].id = 44
 		SaveSystem.delete("test_resource:resource:resource:data")
 	
 	
-	var test_resource = SaveSystem.get_var("test_resource", null, SaveSystemTestResource.new())
+	var test_resource = SaveSystem.get_var("test_resource", SaveSystemTestResource.new())
 	_test('test_resource.id', test_resource.id, 0)
 	_test('test_resource.name', test_resource.name, 'test_resource')
 	_test('test_resource.data["position"]', test_resource.data["position"], 0)
@@ -42,6 +43,11 @@ func _ready():
 			'SaveSystem._sanitize_key_path(":::::test_resource::::a:c:::d::")', 
 			SaveSystem._sanitize_key_path(":::::test_resource::::a:c:::d::"),
 			'test_resource:a:c:d'
+	)
+	_test(
+		'test_resource.resource_arr[0].id',
+		test_resource.resource_arr[0].id,
+		44
 	)
 	
 	_render_tests()
