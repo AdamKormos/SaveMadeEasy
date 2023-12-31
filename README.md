@@ -34,3 +34,10 @@ _You may use the set_var and get_var variables of the SaveSystem Singleton for t
 ![Screenshot_41](https://github.com/AdamKormos/SaveMadeEasy/assets/49873113/f860e709-c108-4ebc-a0f8-c18e3e7925af)
 
 **Nesting is expressed by the colon symbol (:). You may also access dictionary values with this notation.**
+
+# Support
+If you like my work and wanna support me, please consider checking out my [YouTube](https://www.youtube.com/@AdamsGodotTutorials) channel, which has a handful of tutorials - with more to come as time goes on!
+
+I also have a [Discord](https://discord.gg/vhpYfYZSWh) server for my community, you're welcome to hop in. :)
+
+Aaand last but not least, I'm working on games too. Wishlists are appreciated! [Odyssey of Dremid'ir](https://store.steampowered.com/app/2134530/Odyssey_of_Dremidir/) is a hand-drawn RPG, and [Frieseria](https://store.steampowered.com/app/2591170/Frieseria_The_Grand_Reopening/) is a restaurant management game.
