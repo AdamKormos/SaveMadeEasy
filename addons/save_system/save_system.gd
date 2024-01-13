@@ -6,9 +6,9 @@ extends Node
 # ---------------------------------------------------------------------
 # The Save System is a drag-and-drop, easy to use plugin that even allows
 # nested Dictionaries and Resources to be stored & accessed conveniently!
-# Save data is encrypted uniquely, based on the OS id of the device, meaning
-# save files cannot be shared and reused across players. (You can change this
-# by modifying the open_encrypted_with_pass function's encryption key)
+# Save data is encrypted based on an encryption key variable. (Note: As of
+# v1.2, OS.get_unique_id isn't used anymore, as it may change upon the user
+# reinstalling their OS. :UniqueIDDeprecated)
 # A Resource is broken down to a Dictionary internally. Let's say you're saving
 # a Resource under the key name of "res", and it has variables "a", "b" and "c". 
 # You can access its first variable like this:
@@ -16,8 +16,9 @@ extends Node
 # Simple, right?
 #
 # I'd like to thank Loppansson for the awesome setup of the test environment and the naming
-# conventions cleanup. :) My gratitude goes to all of you using the plugin and helping me 
-# make it better by reporting arising issues! 
+# conventions cleanup, and Nevereven for pointing out a handful of things that can make
+# the plugin more diverse. :) My gratitude goes to all of you using the plugin and helping me 
+# make it better by reporting arising issues!
 #
 # You can use this plugin in your Godot project as you wish. 
 # Crediting me is appreciated, but not a must!
@@ -26,8 +27,9 @@ extends Node
 # "loaded" signal of this AutoLoad. 
 
 
-# The file path of your save data. You can freely modify this.
-const file_path : String = "user://save_data.sav"
+# The default file path of your save data. You can freely modify this.
+const default_file_path : String = "user://save_data.sav"
+const encryption_key : String = "abcdefg1234567"
 const use_encryption : bool = true
 
 var current_state_dictionary := {}
@@ -46,6 +48,32 @@ func _ready():
 		base_resource_property_names.append(property.name)
 	
 	_load() # Load save data.
+	
+# Test stuff for demonstration of the plugin --------------------------
+#	
+#	print(get_var("Bob"))
+#	set_var("Bob", TestResource.new())
+#	set_var("Bob:e", Vector2(4, 9))
+#	
+	# Saving arrays with resources and nested resources:
+#	var my_arr := [TestSubresource.new(), TestSubresource.new()]
+#	my_arr[0].c[0].b = 66
+#	set_var("Bob:f", my_arr)
+#	print(get_var("Bob:f")[0].c[0].b)
+#	save()
+#	
+	# Saving primitive types, dictionaries and non-resource arrays:
+#	set_var("Bob:a:b", 3)
+#	set_var("Bob:a:c:d", {"abcf" : 5})
+#	print(has("Bob"))
+#	set_var("Bob:a:b", null)
+#	set_var("Bob:a:c", TestResource.new())
+#	set_var("Bob:a:c:c", 10)
+#	delete("Bob:a:c:d")
+#	print(get_var("Bob"))
+#	print(_sanitize_key_path("Bob:a:c:d"))
+#	print(_sanitize_key_path(":::::Bob::::a:c:::d::"))
+#	print(has("Z"))
 
 
 func _exit_tree():
@@ -86,8 +114,14 @@ func delete(key_path : String):
 # (Note: Might consider making a function called has_and_valid)
 func has(key_path : String) -> bool:
 	if _is_hierarchical(key_path):
+		var variable_head = _get_variable_name_head(key_path)
 		var key_parent = _get_variable_at_path(_get_variable_name_body(key_path))
-		return key_parent != null and key_parent.has(_get_variable_name_head(key_path))
+		if key_parent == null:
+			return false
+		
+		var valid_as_object : bool = (key_parent is Object and variable_head in key_parent)
+		var valid_as_dict : bool = (not key_parent is Object and key_parent.has(variable_head))
+		return key_parent != null and (valid_as_object or valid_as_dict)
 	else:
 		return current_state_dictionary.has(key_path)
 
@@ -117,11 +151,11 @@ func set_var(key_path : String, value):
 		current_state_dictionary[key_path] = value
 
 
-# Saves the current state.
-func save():
+# Saves the current state. You may use a different file path for multi-slot saving.
+func save(file_path : String = default_file_path):
 	var file : FileAccess
 	if use_encryption:
-		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, OS.get_unique_id())
+		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, encryption_key)
 	else:
 		file = FileAccess.open(file_path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(current_state_dictionary))
@@ -160,11 +194,12 @@ func _is_hierarchical(key : String) -> bool:
 	return key.find(":") != -1
 
 
-# Loads the root dictionary stored in the save file.
-func _load():
+# Loads the root dictionary stored in the save file. You may use a different
+# file path for multi-slot saving.
+func _load(file_path : String = default_file_path):
 	var file : FileAccess
 	if use_encryption:
-		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.READ, OS.get_unique_id())
+		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.READ, encryption_key)
 	else:
 		file = FileAccess.open(file_path, FileAccess.READ)
 	
@@ -229,6 +264,9 @@ func _get_parent_dictionary(key_path : String, carried_dict : Dictionary = curre
 	var first_splitter_index = key_path.find(":")
 	var first_name = key_path.substr(0, first_splitter_index)
 	key_path = key_path.trim_prefix(first_name + key_path[first_splitter_index])
+	
+	if carried_dict[first_name] is Object:
+		carried_dict[first_name] = _resource_to_dict(carried_dict[first_name])
 	return _get_parent_dictionary(key_path, carried_dict[first_name])
 
 
@@ -236,8 +274,14 @@ func _get_parent_dictionary(key_path : String, carried_dict : Dictionary = curre
 func _get_variable_at_path(key_path : String, carried_dict : Dictionary = current_state_dictionary):
 	key_path = _sanitize_key_path(key_path)
 	var parent_dict = _get_parent_dictionary(key_path)
-	if parent_dict != null and parent_dict.has(_get_variable_name_head(key_path)):
-		return parent_dict[_get_variable_name_head(key_path)]
+	if parent_dict != null:
+		var variable_head = _get_variable_name_head(key_path)
+		if not parent_dict is Object and parent_dict.has(variable_head):
+			return parent_dict[variable_head]
+		elif parent_dict is Object and variable_head in parent_dict:
+			return parent_dict.get(variable_head)
+		else:
+			return null
 	else:
 		return null
 

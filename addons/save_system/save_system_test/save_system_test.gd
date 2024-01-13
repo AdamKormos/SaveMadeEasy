@@ -14,10 +14,15 @@ func _ready():
 	var first_load = not SaveSystem.has("test_resource")
 	
 	if first_load:
-		SaveSystem.set_var("test_resource", SaveSystemTestResource.new())
-		SaveSystem.set_var("test_resource:id", 0)
+		var res := SaveSystemTestResource.new()
+		res.id = 2
+		SaveSystem.set_var("test_resource", res)
 		SaveSystem.set_var("test_resource:name", "test_resource")
-		SaveSystem.set_var("test_resource:resource", SaveSystemTestResource.new())
+		# Notice how we get_var the test_resource and separately assign its "resource" variable,
+		# without a set_var call. Later in the tests, you can see the reference makes it so
+		# when you get/set_var "test_resource:resource", the code will refer to what 
+		# we've just set here.
+		SaveSystem.get_var("test_resource").resource = SaveSystemTestResource.new()
 		SaveSystem.set_var("test_resource:resource:id", 1)
 		SaveSystem.set_var("test_resource:resource:data:tags", {
 			"primary_tag" : "resource",
@@ -29,9 +34,9 @@ func _ready():
 		SaveSystem.get_var("test_resource:resource_arr")[0].id = 44
 		SaveSystem.delete("test_resource:resource:resource:data")
 	
-	
 	var test_resource = SaveSystem.get_var("test_resource", SaveSystemTestResource.new())
-	_test('test_resource.id', test_resource.id, 0)
+	_test('test_resource.id', test_resource.id, 2)
+	_test('test_resource.resource.id', test_resource.resource.id, 1)
 	_test('test_resource.name', test_resource.name, 'test_resource')
 	_test('test_resource.data["position"]', test_resource.data["position"], 0)
 	_test('test_resource.data["tags"]', test_resource.data["tags"], {"primary_tag": "", "secondary_tag": ""})
