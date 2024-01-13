@@ -11,7 +11,7 @@ This compact plugin stores all the data in an encrypted save file (encoded with 
 4. You're good to go! Don't forget to read the documentation. You can modify the save file name ("const file_name") at the top of the SaveSystem.gd script.
 
 # Contact
-If you have any questions/concerns or just wanna say hi, you can message me on Twitter or add me on Discord. My handle is olcgreen on both.
+If you have any questions/concerns or just wanna say hi, you can message me on [Twitter](https://twitter.com/olcgreen) or add me on Discord. My handle is olcgreen on both.
 
 # Documentation
 While you can find complete documentation in the plugin code, let me highlight the most important functions:
@@ -21,7 +21,10 @@ While you can find complete documentation in the plugin code, let me highlight t
 - delete_all: **Deletes all data.** (Still need to call save() for the file to be overwritten.)
 - has(key_path): **Checks if a variable exists at "key_path".**
 - save: **Use this to save data and write the file.**
+
 You can also notice functions intended for internal use begin their names with an underscore in the code.
+
+**Note: Your save file will go into what Godot refers to as the user:// directory, on Windows, this is C:\Users\UserName\AppData\Roaming\Godot\app_userdata.**
 
 # Demonstration
 _Here's a class of our Resource created for testing this system:_
