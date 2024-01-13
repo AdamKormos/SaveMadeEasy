@@ -158,7 +158,7 @@ func save(file_path : String = default_file_path):
 		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, encryption_key)
 	else:
 		file = FileAccess.open(file_path, FileAccess.WRITE)
-	file.store_string(JSON.stringify(current_state_dictionary))
+	file.store_string(JSON.stringify(current_state_dictionary, "\t"))
 	emit_signal("saved")
 
 
