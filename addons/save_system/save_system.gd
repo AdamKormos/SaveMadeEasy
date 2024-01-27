@@ -30,7 +30,12 @@ extends Node
 # The default file path of your save data. You can freely modify this.
 const default_file_path : String = "user://save_data.sav"
 const encryption_key : String = "abcdefg1234567"
-const use_encryption : bool = true
+const use_encryption : bool = false
+# Typecasting the keys manually may increase loading times, so if you feel like
+# this feature is irrelevant in your project, set this to false.
+# You typically only need this enabled if you are using dictionary keys
+# that aren't Strings.
+const perform_typecast_on_dictionary_keys : bool = true
 
 var current_state_dictionary := {}
 var base_resource_property_names := []
@@ -134,6 +139,8 @@ func set_var(key_path : String, value):
 			value = _resource_to_dict(value)
 		elif value is Array:
 			value = _parse_array(value)
+		elif value is Dictionary:
+			value = _typecast_dictionary_keys(value)
 		
 		if not has(key_path): # Read :HasIncludesNull
 			return
@@ -158,6 +165,11 @@ func save(file_path : String = default_file_path):
 		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, encryption_key)
 	else:
 		file = FileAccess.open(file_path, FileAccess.WRITE)
+	
+	# We need to call typecasting when saving too, so that Resources that
+	# weren't manually added with set_var but are parts of an object that
+	# were, can be broken down to Dictionaries.
+	current_state_dictionary = _typecast_dictionary_keys(current_state_dictionary)
 	file.store_string(JSON.stringify(current_state_dictionary, "\t"))
 	emit_signal("saved")
 
@@ -205,7 +217,76 @@ func _load(file_path : String = default_file_path):
 	
 	if file:
 		current_state_dictionary = JSON.parse_string(file.get_as_text())
+		if perform_typecast_on_dictionary_keys:
+			current_state_dictionary = _typecast_dictionary_keys(current_state_dictionary)
+	
 	emit_signal("loaded")
+
+
+# By default, JSON parsing doesn't typecast the keys of a Dictionary, which can be
+# an issue. So when the file is loaded, a manual typecast is performed on Dictionary
+# keys to ensure you can access them as intended, without having to stringify all
+# your Dictionary keys.
+func _typecast_dictionary_keys(input_dict : Dictionary) -> Dictionary:
+	var typed_dict := {}
+	for key in input_dict.keys():
+		var value = input_dict[key]
+		
+		var typed_key = _get_typed_key(key)
+		# If our key's value is a Dictionary, its keys must go through recursive 
+		# typecasting, and be assigned in that form to our result dictionary's key. 
+		if value is Dictionary:
+			typed_dict[typed_key] = _typecast_dictionary_keys(value)
+		else:
+			# If the value is an Array, we have to account for underlying Dictionaries
+			# among its elements and recursively typecast them.
+			if value is Array:
+				for i in range(value.size()):
+					if value[i] is Dictionary:
+						value[i] = _typecast_dictionary_keys(value[i])
+			typed_dict[typed_key] = value
+	return typed_dict
+
+
+# Typecasts a key value and returns it. We cannot simply use str_to_var in every case,
+# as for Strings (text value - which is also what we read out of files) that cannot 
+# be typecasted, it returns null, and it doesn't parse Vectors properly!
+# :StrToVarIsNullOnString
+func _get_typed_key(key):
+	# Since str_to_var lacks converting the sheer coordinate values into a Vector 
+	# automatically, we have to add some conditions to predict whether the key is 
+	# a Vector value or not.
+	if key is String and key.begins_with("(") and key.ends_with(")") and key.find(",") != -1:
+		var comma_count : int = key.count(",")
+		# To better understand this parsing, imagine we store a 2D Vector of
+		# (2, 5). "(2, 5)" is what's being stored in the file, and we have one comma,
+		# so the result parameter of str_to_var is "Vector2(2, 5)", which the 
+		# function can conveniently work with.
+		var supposed_vector_value = str_to_var("Vector" + str(comma_count + 1) + key)
+		if supposed_vector_value != null:
+			return supposed_vector_value
+		# Here we can get around the :StrToVarIsNullOnString limitation, as we
+		# already know our key is a String, given the branch entry conditions.
+		else:
+			return key
+	# We cannot typecast Resource keys, because when we load them back,
+	# there is no reliable way to know what type of Resource it was,
+	# so the recommended approach is to call _resource_to_dict on your
+	# resource before using it as a key, if the Dictionary is in an object
+	# you're saving.
+	# TODO: Perhaps we could add the Resource's resource_path as an additional
+	# key when we convert it to a Dictionary, and immediately convert the
+	# Dictionary back to a Resource on load? We'd still need a manual
+	# lookup method though, because Godot compares Resources based on their
+	# unique IDs, not based on their variables matching, of course.
+	# :NoResourceKeyTypecast
+#	elif key is Resource:
+#		return _typecast_dictionary_keys(_resource_to_dict(key))
+	# :StrToVarIsNullOnString
+	elif (key is String and str_to_var(key) == null) or (not key is String):
+		return key
+	else:
+		return str_to_var(key)
 
 
 # Sanitizes the input key path. It must be performed on every input that goes into 

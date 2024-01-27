@@ -55,6 +55,34 @@ func _ready():
 		44
 	)
 	
+	if SaveSystem.perform_typecast_on_dictionary_keys:
+		_test(
+			'test_resource.non_string_key_dictionary[123]',
+			test_resource.non_string_key_dictionary[123],
+			"abc"
+		)
+		_test(
+			'test_resource.non_string_key_dictionary[true]',
+			test_resource.non_string_key_dictionary[true],
+			Vector2.ONE
+		)
+		_test(
+			'test_resource.non_string_key_dictionary[Vector2(1, 1)][0]["name"]',
+			test_resource.non_string_key_dictionary[Vector2(1, 1)][0]["name"],
+			"Bob"
+		)
+		_test(
+			'test_resource.non_string_key_dictionary[Vector2(1, 1)][0][false]',
+			test_resource.non_string_key_dictionary[Vector2(1, 1)][0][false],
+			"False :("
+		)
+		# :NoResourceKeyTypecast
+		_test(
+			'test_resource.positions[SaveSystem._resource_to_dict(SaveSystemTestSubresource.new())]',
+			test_resource.positions[SaveSystem._resource_to_dict(SaveSystemTestSubresource.new())],
+			Vector2(2, 3)
+		)
+	
 	_render_tests()
 	
 	# Quit after printing results

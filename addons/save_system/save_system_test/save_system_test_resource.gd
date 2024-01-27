@@ -14,3 +14,14 @@ var data : Dictionary = {
 	}
 }
 
+var non_string_key_dictionary : Dictionary = {
+	123 : "abc",
+	true : Vector2.ONE,
+	Vector2(-1, 0.5) : "aaaaa",
+	Vector2(1, 1) : [{"name" : "Bob", "cast" : "Warrior", "mana" : 5, false : "False :("}, 235]
+}
+
+# :NoResourceKeyTypecast
+var positions : Dictionary = {
+	{"id" : 0, "name" : ""} : Vector2(2, 3)
+}
