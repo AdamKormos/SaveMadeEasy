@@ -3,7 +3,7 @@ extends Resource
 
 
 var id : int
-var name : String
+var name : String = "abc"
 var resource : Resource
 var resource_arr := [SaveSystemTestSubresource.new(), SaveSystemTestSubresource.new()]
 var data : Dictionary = {
@@ -21,7 +21,7 @@ var non_string_key_dictionary : Dictionary = {
 	Vector2(1, 1) : [{"name" : "Bob", "cast" : "Warrior", "mana" : 5, false : "False :("}, 235]
 }
 
-# :NoResourceKeyTypecast
+# :ExperimentalResKey
 var positions : Dictionary = {
-	{"id" : 0, "name" : ""} : Vector2(2, 3)
+	SaveSystemTestSubresource.new() : Vector2(2, 3)
 }

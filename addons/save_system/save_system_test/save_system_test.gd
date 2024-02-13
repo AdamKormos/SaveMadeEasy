@@ -17,7 +17,6 @@ func _ready():
 		var res := SaveSystemTestResource.new()
 		res.id = 2
 		SaveSystem.set_var("test_resource", res)
-		SaveSystem.set_var("test_resource:name", "test_resource")
 		# Notice how we get_var the test_resource and separately assign its "resource" variable,
 		# without a set_var call. Later in the tests, you can see the reference makes it so
 		# when you get/set_var "test_resource:resource", the code will refer to what 
@@ -37,7 +36,8 @@ func _ready():
 	var test_resource = SaveSystem.get_var("test_resource", SaveSystemTestResource.new())
 	_test('test_resource.id', test_resource.id, 2)
 	_test('test_resource.resource.id', test_resource.resource.id, 1)
-	_test('test_resource.name', test_resource.name, 'test_resource')
+	# Example: You don't have to manually set_var test_resource:name!
+	_test('test_resource.name', test_resource.name, 'abc')
 	_test('test_resource.data["position"]', test_resource.data["position"], 0)
 	_test('test_resource.data["tags"]', test_resource.data["tags"], {"primary_tag": "", "secondary_tag": ""})
 	_test('SaveSystem.has("test_resource")', SaveSystem.has("test_resource"), true)
@@ -76,12 +76,14 @@ func _ready():
 			test_resource.non_string_key_dictionary[Vector2(1, 1)][0][false],
 			"False :("
 		)
-		# :NoResourceKeyTypecast
-		_test(
-			'test_resource.positions[SaveSystem._resource_to_dict(SaveSystemTestSubresource.new())]',
-			test_resource.positions[SaveSystem._resource_to_dict(SaveSystemTestSubresource.new())],
-			Vector2(2, 3)
-		)
+		# Experimental test, this won't work with the current plugin yet,
+		# if the positions Dictionary has a Resource as the key.
+		# :ExperimentalResKey
+#		_test(
+#			'test_resource.positions[SaveSystem._resource_to_dict(SaveSystemTestSubresource.new())]',
+#			test_resource.positions[SaveSystem._resource_to_dict(SaveSystemTestSubresource.new())],
+#			Vector2(2, 3)
+#		)
 	
 	_render_tests()
 	

@@ -1,3 +1,4 @@
+@tool
 extends Node
 
 # ---------------------------------------------------------------------
@@ -37,9 +38,33 @@ const use_encryption : bool = false
 # that aren't Strings.
 const perform_typecast_on_dictionary_keys : bool = true
 
-var current_state_dictionary := {}
-var base_resource_property_names := []
+@export var current_state_dictionary := {}
 
+# I wished to create a separate Dock for the controls, but connecting 
+# clear_save_data_on_start to a dock control was very problematic and
+# never seemed to work as intended, so I had to put these as exports. Unfortunate :(
+## Set this to true to clear every save data you have, when starting the game.
+@export var clear_save_data_on_start : bool = false
+## Set this to true to clear every save data you have. Automatically resets to false
+## afterwards
+@export var clear_all_data : bool = false : set = set_clear_data
+func set_clear_data(value):
+	if value:
+		delete_all()
+		can_save_empty_in_editor_with_permission = true
+		save()
+		clear_all_data = false
+
+# This variable is created because if you try to disable the plugin,
+# due to this script's exit_tree, the file gets saved, but it will be
+# empty (= current_state_dictionary is empty)! I'm assuming the script
+# gets deloaded and that's why, but it still doesn't completely click. 
+# Anyway, we *do* want to clear our save file with the exported 
+# variable though, so this permission is given in that case. 
+# :EditorEmptySavingPermission
+var can_save_empty_in_editor_with_permission : bool = false
+
+var base_resource_property_names := []
 
 signal loaded
 signal saved
@@ -52,7 +77,12 @@ func _ready():
 	for property in res.get_property_list():
 		base_resource_property_names.append(property.name)
 	
-	_load() # Load save data.
+	# If we boot the game and want to erase data on start -
+	if !Engine.is_editor_hint() and clear_save_data_on_start:
+		delete_all()
+		save()
+	else:
+		_load() # Load save data.
 	
 # Test stuff for demonstration of the plugin --------------------------
 #	
@@ -160,6 +190,11 @@ func set_var(key_path : String, value):
 
 # Saves the current state. You may use a different file path for multi-slot saving.
 func save(file_path : String = default_file_path):
+	# :EditorEmptySavingPermission
+	if current_state_dictionary.is_empty() and Engine.is_editor_hint():
+		if !can_save_empty_in_editor_with_permission:
+			return
+	
 	var file : FileAccess
 	if use_encryption:
 		file = FileAccess.open_encrypted_with_pass(file_path, FileAccess.WRITE, encryption_key)
@@ -171,6 +206,7 @@ func save(file_path : String = default_file_path):
 	# were, can be broken down to Dictionaries.
 	current_state_dictionary = _typecast_dictionary_keys(current_state_dictionary)
 	file.store_string(JSON.stringify(current_state_dictionary, "\t"))
+	can_save_empty_in_editor_with_permission = false
 	emit_signal("saved")
 
 
