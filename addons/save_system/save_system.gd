@@ -36,7 +36,7 @@ const use_encryption : bool = false
 # this feature is irrelevant in your project, set this to false.
 # You typically only need this enabled if you are using dictionary keys
 # that aren't Strings.
-const perform_typecast_on_dictionary_keys : bool = true
+const perform_typecast_on_dictionary_keys : bool = false
 
 @export var current_state_dictionary := {}
 
