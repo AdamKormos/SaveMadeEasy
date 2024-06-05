@@ -1,4 +1,4 @@
-@tool
+#@tool # Temporarily disabled for maintenance
 extends Node
 
 # ---------------------------------------------------------------------
