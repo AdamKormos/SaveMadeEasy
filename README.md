@@ -40,7 +40,7 @@ You can also notice functions intended for internal use begin their names with a
 _Here's a class of our Resource created for testing this system:_
 
 ```GDScript
-class_name TextResource extends Resource
+class_name TestResource extends Resource
 
 var a
 var b
