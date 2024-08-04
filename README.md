@@ -12,7 +12,9 @@ This compact plugin stores all the data in an encrypted save file (encoded with 
 1. **Download the plugin**: from the <ins>Godot Asset Library</ins> **or** the zip file of this repo by clicking on "Code", and the "Local" tab. You should see a "Download ZIP" option.
 2. **If you downloaded manually**, place the addons/save_system file into your project directory, ideally into a folder called "addons".
 3. **Enable the plugin**: Go to Godot's Plugins tab (Project -> Project Settings -> Plugins) and tick "Enable" by the plugin. (If the plugin doesn't show up, you may need to restart the editor.)
-4. You're good to go! Don't forget to read the documentation. You can modify the save file name (`const file_name`) at the top of the **SaveSystem.gd** script.
+4. You're good to go! **Don't forget to read the documentation.** You can modify the save file name (`const file_name`) at the top of the **SaveSystem.gd** script.
+
+*Note: You may want to visit Project -> Project Settings -> AutoLoads and make the SaveSystem AutoLoad be the very first one that boots, to allow other AutoLoads to work with the plugin at start-up. You can do this by dragging it to the top of the AutoLoad list.*
 
 
 # Contact
