@@ -12,7 +12,8 @@ This compact plugin stores all the data in an encrypted save file (encoded with 
 1. **Download the plugin**: from the <ins>Godot Asset Library</ins> **or** the zip file of this repo by clicking on "Code", and the "Local" tab. You should see a "Download ZIP" option.
 2. **If you downloaded manually**, place the addons/save_system file into your project directory, ideally into a folder called "addons".
 3. **Enable the plugin**: Go to Godot's Plugins tab (Project -> Project Settings -> Plugins) and tick "Enable" by the plugin. (If the plugin doesn't show up, you may need to restart the editor.)
-4. You're good to go! **Don't forget to read the documentation.** You can modify the save file name (`const file_name`) at the top of the **SaveSystem.gd** script.
+4. **Set the SaveSystem AutoLoad as the first one in the boot order** by going to Project -> Project Settings -> AutoLoad. This ensures other AutoLoads relying on it will already have the Save System loaded by the time they are initialized.
+5. You're good to go! **Don't forget to read the documentation.** You can modify the save file name (`const file_name`) at the top of the **SaveSystem.gd** script.
 
 *Note: You may want to visit Project -> Project Settings -> AutoLoads and make the SaveSystem AutoLoad be the very first one that boots, to allow other AutoLoads to work with the plugin at start-up. You can do this by dragging it to the top of the AutoLoad list.*
 
@@ -74,4 +75,4 @@ If you like my work and wanna support me, please consider checking out my [YouTu
 
 I also have a [Discord](https://discord.gg/vhpYfYZSWh) server for my community, you're welcome to hop in. :)
 
-Aaand last but not least, I'm working on games too. Wishlists are appreciated! [Odyssey of Dremid'ir](https://store.steampowered.com/app/2134530/Odyssey_of_Dremidir/) is a hand-drawn RPG, and [Frieseria](https://store.steampowered.com/app/2591170/Frieseria_The_Grand_Reopening/) is a restaurant management game.
+Aaand last but not least, I'm working on games too. Wishlists are appreciated! [Pik The Archon](https://store.steampowered.com/app/3373330/Pik_the_Archon/) is my 3D beat 'em up-platformer hybrid with mount-and-combat (I also have a [Discord community](https://discord.gg/taTX4bAe5n) for it), [Odyssey of Dremid'ir](https://store.steampowered.com/app/2134530/Odyssey_of_Dremidir/) is a hand-drawn RPG, and [Frieseria](https://store.steampowered.com/app/2591170/Frieseria_The_Grand_Reopening/) is a restaurant management game.
