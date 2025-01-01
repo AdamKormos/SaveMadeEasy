@@ -17,6 +17,8 @@ This compact plugin stores all the data in an encrypted save file (encoded with 
 
 *Note: You may want to visit Project -> Project Settings -> AutoLoads and make the SaveSystem AutoLoad be the very first one that boots, to allow other AutoLoads to work with the plugin at start-up. You can do this by dragging it to the top of the AutoLoad list.*
 
+# Limitations
+- You generally shouldn't use **numerals** as whole Dictionary keys (123), or at the beginning (12mykey), unless you have the perform_typecast_on_dictionary_keys constant boolean set to false. (At the top of the script.) This is because if it's true, the plugin saves the Dictionary key as a numeral, but you can only access keys via Strings, considering the key path nesting. (In this case, when accessing keys, you also have to stringify your input key. -- TODO: Automatically handle this conversion, maybe log it.)
 
 # Contact
 If you have any questions/concerns or just wanna say hi, you can message me on [Twitter](https://twitter.com/olcgreen) or add me on Discord. My handle is olcgreen on both.
